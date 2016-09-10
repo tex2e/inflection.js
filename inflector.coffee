@@ -1,24 +1,12 @@
 
+# implements pluralize() and singularize()
+#
 # Rails Active Support
 # https://github.com/rails/rails/tree/master/activesupport
-
+#
 # Inflector module
 # https://github.com/rails/rails/tree/master/activesupport/lib/active_support/inflector
-
-
-# Delete the given element from given array.
-# If the element isn't in the array, return null and doesn't change the array.
 #
-#   array = ["apple", "banana", "cherry"]
-#   delete_element(array, "banana")
-#   array
-#   # => ["apple", "cherry"]
-#
-delete_element = (array, entry) ->
-  entry_index = array.indexOf(entry)
-  return null if entry_index == -1
-  array.splice(entry_index, entry_index)
-
 
 # helper class for Inflector
 class Inflections
@@ -27,19 +15,35 @@ class Inflections
     @singulars = []
     @uncountables = []
 
+  # Specifies a new pluralization rule and its replacement. The rule can
+  # either be a string or a regular expression. The replacement should
+  # always be a string that may include references to the matched data from
+  # the rule.
   plural: (rule, replacement) ->
-    delete_element(@uncountables, rule)
-    delete_element(@uncountables, replacement)
+    _delete_element(@uncountables, rule)
+    _delete_element(@uncountables, replacement)
     @plurals.splice(0, 0, [rule, replacement])
 
+  # Specifies a new singularization rule and its replacement. The rule can
+  # either be a string or a regular expression. The replacement should
+  # always be a string that may include references to the matched data from
+  # the rule.
   singular: (rule, replacement) ->
-    delete_element(@uncountables, rule)
-    delete_element(@uncountables, replacement)
+    _delete_element(@uncountables, rule)
+    _delete_element(@uncountables, replacement)
     @singulars.splice(0, 0, [rule, replacement])
 
+  # Specifies a new irregular that applies to both pluralization and
+  # singularization at the same time. This can only be used for strings, not
+  # regular expressions. You simply pass the irregular in singular and
+  # plural form.
+  #
+  #   irregular 'octopus', 'octopi'
+  #   irregular 'person', 'people'
+  #
   irregular: (singular, plural) ->
-    delete_element(@uncountables, singular)
-    delete_element(@uncountables, plural)
+    _delete_element(@uncountables, singular)
+    _delete_element(@uncountables, plural)
 
     s0 = singular[0]
     srest = singular[1..-1]
@@ -64,8 +68,26 @@ class Inflections
       this.singular(///#{p0.toUpperCase()}(?i)#{prest}$///, s0.toUpperCase() + srest)
       this.singular(///#{p0.toLowerCase()}(?i)#{prest}$///, s0.toLowerCase() + srest)
 
-  uncountable: (words) ->
+  # Specifies words that are uncountable and should not be inflected.
+  #
+  #   uncountable 'money'
+  #   uncountable 'money', 'information'
+  #
+  uncountable: (words...) ->
     Array::push.apply(@uncountables, words)
+
+  # Delete the given element from given array.
+  # If the element isn't in the array, return null and doesn't change the array.
+  #
+  #   array = ["apple", "banana", "cherry"]
+  #   delete_element(array, "banana")
+  #   array
+  #   # => ["apple", "cherry"]
+  #
+  _delete_element = (array, entry) ->
+    entry_index = array.indexOf(entry)
+    return null if entry_index == -1
+    array.splice(entry_index, entry_index)
 
 
 # The Inflector transforms words from singular to plural.
@@ -128,6 +150,7 @@ singularize = (word) ->
 Inflector.inflections (inflect) ->
   # these settings are based on:
   # https://github.com/rails/rails/blob/master/activesupport/lib/active_support/inflections.rb
+
   inflect.plural(/$/, "s")
   inflect.plural(/s$/i, "s")
   inflect.plural(/^(ax|test)is$/i, '$1es')
@@ -186,7 +209,6 @@ Inflector.inflections (inflect) ->
   inflect.irregular("move", "moves")
   inflect.irregular("zombie", "zombies")
 
-  inflect.uncountable([
+  inflect.uncountable(
     "equipment", "information", "rice", "money",
-    "species", "series", "fish", "sheep", "jeans", "police"
-  ])
+    "species", "series", "fish", "sheep", "jeans", "police")
