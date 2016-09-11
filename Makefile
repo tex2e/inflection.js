@@ -1,9 +1,9 @@
 
-js: js/inflector.js
-min.js: js/inflector.min.js
+js: js/inflection.js
+min.js: js/inflection.min.js
 
-js/inflector.js: coffee/inflector.coffee
+js/inflection.js: coffee/inflection.coffee
 	coffee --bare --compile --output js/ coffee/
 
-js/inflector.min.js: js/inflector.js
+js/inflection.min.js: js/inflection.js
 	uglifyjs --compress --mangle -- $? > $@
